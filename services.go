@@ -1,10 +1,11 @@
 package main
 
 import (
-	"findata/funddata/storage"
 	"io/ioutil"
 	"log"
 	"time"
+
+	"github.com/chenxiaoli/crawler/storage"
 
 	"github.com/henrylee2cn/surfer"
 
