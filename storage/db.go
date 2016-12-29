@@ -2,6 +2,7 @@ package storage
 
 import (
 	"log"
+	"time"
 
 	"fmt"
 
@@ -18,7 +19,7 @@ var (
 InitMongodb 初始化mongodb
 */
 func InitMongodb(mgoTopic map[string]string) {
-	mongodbURL = fmt.Sprintf("%s:%s", mgoTopic["host"], mgoTopic["port"])
+	mongodbURL = fmt.Sprintf("mongodb://%s:%s", mgoTopic["host"], mgoTopic["port"])
 	dataBase = mgoTopic["dbname"]
 }
 
@@ -26,10 +27,12 @@ func InitMongodb(mgoTopic map[string]string) {
 StartUp 启动
 */
 func StartUp() {
+
 	if mgoSession == nil {
 		var err error
+		maxWait := time.Duration(10 * time.Second)
 		log.Println("mongodbURL:" + mongodbURL)
-		mgoSession, err = mgo.Dial(mongodbURL)
+		mgoSession, err = mgo.DialWithTimeout(mongodbURL, maxWait)
 		if err != nil {
 			panic(err) //直接终止程序运行
 		}

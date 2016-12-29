@@ -14,6 +14,7 @@ StartPageCrawlWorker 启动一个抓取worker
 */
 func StartPageCrawlWorker() {
 	url := fmt.Sprintf("amqp://%s:%s@%s:%s/", RabbitMQ["username"], RabbitMQ["password"], RabbitMQ["host"], RabbitMQ["port"])
+	log.Printf("amqp dial:%s", url)
 	conn, err := amqp.Dial(url)
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()

@@ -1,2 +1,3 @@
-# crawler
-a crawler worker
+install
+
+go get github.com/chenxiaoli/crawler
