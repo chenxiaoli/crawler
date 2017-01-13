@@ -1,4 +1,4 @@
-package main
+package config
 
 import (
 	"flag"
@@ -8,6 +8,9 @@ import (
 	"github.com/chenxiaoli/crawler/storage"
 	"github.com/larspensjo/config"
 )
+
+//topic list
+var TOPIC = make(map[string]string)
 
 /*
 MongoDB 数据库的配置
@@ -22,7 +25,7 @@ var RabbitMQ = make(map[string]string)
 /*
 Init 初始化
 */
-func InitCnf() {
+func InitCnf(configFile *string) {
 
 	runtime.GOMAXPROCS(runtime.NumCPU())
 	flag.Parse()

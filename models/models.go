@@ -1,17 +1,22 @@
-package main
+package models
 
 import "time"
 
 /*
 URL ...
+
+{"url":"http://www.jjmmw.com/"}
 */
 type URL struct {
-	URL      string            `json:"url"`
-	Usage    string            `json:"usage"`
-	Domain   string            `json:"domain"`
-	Code     string            `json:"code"`
-	Method   string            `json:"method"`
-	PostData map[string]string `json:"post_data"`
+	ID              string            `json:"_id"`
+	URL             string            `json:"url"`
+	Usage           string            `json:"usage"` //页面的主要用途
+	Domain          string            `json:"domain"`
+	Code            string            `json:"code"`
+	Method          string            `json:"method"`
+	PostData        map[string]string `json:"post_data"`
+	Status          string            //new,in,out
+	StatusCreatedAt time.Time         `json:"status_created_at"`
 }
 
 /*
@@ -38,14 +43,23 @@ type PagePaser struct {
 Page ...
 */
 type Page struct {
-	URL         string
+	ID          string `json:"_id"`
+	URL         string `json:"url"`
 	Data        []byte
 	Usage       string
 	Domain      string
 	Code        string
-	ContentType string
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	ContentType string    `json:"content_type"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+/*
+Host 允许爬虫抓取的网站
+*/
+type Host struct {
+	Host    string
+	Allowed bool
 }
 
 /*

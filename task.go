@@ -4,25 +4,20 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/chenxiaoli/crawler/base"
 	"github.com/streadway/amqp"
 )
-
-func failOnError(err error, msg string) {
-	if err != nil {
-		log.Fatalf("%s: %s", msg, err)
-	}
-}
 
 /*
 SendPageCrawlTask 发起一个网页抓取任务
 */
 func SendPageCrawlTask(url URL) {
 	conn, err := amqp.Dial("amqp://findata:fax123@localhost:5672/")
-	failOnError(err, "Failed to connect to RabbitMQ")
+	base.FailOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
 	ch, err := conn.Channel()
-	failOnError(err, "Failed to open a channel")
+	base.FailOnError(err, "Failed to open a channel")
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
@@ -34,7 +29,7 @@ func SendPageCrawlTask(url URL) {
 		nil,            // arguments
 	)
 	log.Println(q)
-	failOnError(err, "Failed to declare a queue")
+	base.FailOnError(err, "Failed to declare a queue")
 
 	body, _ := json.Marshal(url)
 	err = ch.Publish(
@@ -48,5 +43,5 @@ func SendPageCrawlTask(url URL) {
 			Body:         []byte(body),
 		})
 	log.Printf(" [x] Sent %s", body)
-	failOnError(err, "Failed to publish a message")
+	base.FailOnError(err, "Failed to publish a message")
 }

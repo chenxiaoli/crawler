@@ -1,21 +1,38 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
-	"log"
+	"time"
 
+	"flag"
 	"fmt"
+	"log"
+	"os"
 
+	"net/url"
+
+	"github.com/PuerkitoBio/goquery"
 	"github.com/chenxiaoli/crawler/base"
 	"github.com/chenxiaoli/crawler/config"
 	"github.com/chenxiaoli/crawler/models"
+	"github.com/chenxiaoli/crawler/storage"
+	"github.com/chenxiaoli/crawler/utils"
 	"github.com/streadway/amqp"
+	"gopkg.in/mgo.v2/bson"
 )
+
+func main() {
+	configFile := flag.String("configfile", os.Args[1], "General configuration file")
+	config.InitCnf(configFile)
+	storage.StartUp()
+	StartWorker()
+}
 
 /*
 StartPageCrawlWorker 启动一个抓取worker
 */
-func StartPageCrawlWorker() {
+func StartWorker() {
 	url := fmt.Sprintf("amqp://%s:%s@%s:%s/", config.RabbitMQ["username"], config.RabbitMQ["password"], config.RabbitMQ["host"], config.RabbitMQ["port"])
 	log.Printf("amqp dial:%s", url)
 	conn, err := amqp.Dial(url)
@@ -27,12 +44,12 @@ func StartPageCrawlWorker() {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"page-crawler", // name
-		true,           // durable
-		false,          // delete when usused
-		false,          // exclusive
-		false,          // no-wait
-		nil,            // arguments
+		"page-crawl-done", // name
+		true,              // durable
+		false,             // delete when usused
+		false,             // exclusive
+		false,             // no-wait
+		nil,               // arguments
 	)
 	base.FailOnError(err, "Failed to declare a queue")
 
@@ -57,10 +74,10 @@ func StartPageCrawlWorker() {
 
 	go func() {
 		for d := range msgs {
-			var aURL models.URL
+			var note models.PageSaveNote
 			log.Printf("Received a message: %s", d.Body)
-			json.Unmarshal(d.Body, &aURL)
-			crawlPage(aURL)
+			json.Unmarshal(d.Body, &note)
+			URLProducer(note)
 			log.Printf("Done")
 			d.Ack(false)
 
@@ -70,3 +87,5 @@ func StartPageCrawlWorker() {
 	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
 }
+
+
