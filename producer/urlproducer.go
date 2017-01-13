@@ -67,7 +67,7 @@ func URLProducer(p models.PageSaveNote) {
 				}
 				urls[urlStruct.String()] = urlStruct
 			} else {
-				log.Printf("error:%s \n", err)
+			log.Printf("error:%s \n", err)
 			}
 		}
 
