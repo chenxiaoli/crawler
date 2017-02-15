@@ -1,10 +1,11 @@
-FROM golang:1.8-rc
+FROM golang:1.6
 
 RUN mkdir -p /go/src/app
 WORKDIR /go/src/app
 COPY . /go/src/app
 
-
+COPY vendors/ /go/src/
+#RUN rm -rf /go/src/app/vendors
 RUN go-wrapper download
 RUN go-wrapper install
 
