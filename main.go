@@ -6,6 +6,7 @@ import (
 
 	"github.com/chenxiaoli/crawler/config"
 	"github.com/chenxiaoli/crawler/storage"
+	"github.com/chenxiaoli/crawler/worker"
 )
 
 func main() {
@@ -14,6 +15,6 @@ func main() {
 	config.InitCnf(configFile)
 	storage.StartUp()
 
-	StartPageCrawlWorker()
+	worker.StartPageCrawlWorker()
 
 }
