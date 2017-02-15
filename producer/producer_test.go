@@ -10,5 +10,5 @@ import (
 func Test_URLProducer(t *testing.T) {
 
 var note models.PageSaveNote
-producer.URLProducer()
+producer.URLProducer(note)
 }

@@ -30,13 +30,13 @@ func crawlPage(aURL models.URL) {
 			log.Println(err)
 		} else {
 			urlStruct, _ := url.Parse(aURL.URL)
-			page := Page{}
+			page := models.Page{}
 			page.URL = aURL.URL
 			page.Data = b
 			page.ContentType = resp.Header.Get("Content-Type")
 			page.UpdatedAt = time.Now()
 			page.CreatedAt = time.Now()
-			page.Usage = aURL.Usage
+			page.Usages = aURL.Usages
 			page.Domain = urlStruct.Host
 			page.Code = aURL.Code
 			savePage(&page)
@@ -44,10 +44,10 @@ func crawlPage(aURL models.URL) {
 	}
 }
 
-func savePage(p *Page) {
+func savePage(p *models.Page) {
 	session := storage.GetSession()
 	log.Println(p.URL)
-	dbPage := Page{}
+	dbPage := models.Page{}
 	c := session.DB("findata").C("page")
 	urlc := session.DB("findata").C("url")
 	urlc.Update(bson.M{"url": &p.URL}, bson.M{"status": "out", "status_created_at": time.Now()})
@@ -57,12 +57,12 @@ func savePage(p *Page) {
 		c.Update(bson.M{"url": &p.URL}, p)
 		log.Println("update page:" + p.URL)
 
-		var note PageSaveNote
+		var note models.PageSaveNote
 		note.Code = p.Code
 		note.ContentType = p.ContentType
 		note.CreatedAt = p.CreatedAt
 		note.URL = p.URL
-		note.Usage = p.Usage
+		note.Usages = p.Usages
 		b, err := json.Marshal(note)
 		if err == nil {
 			NewTask("page-crawl-done", string(b))
@@ -73,12 +73,12 @@ func savePage(p *Page) {
 			log.Fatal(err)
 		}
 		log.Println("insert page:" + p.URL)
-		var note PageSaveNote
+		var note models.PageSaveNote
 		note.Code = p.Code
 		note.ContentType = p.ContentType
 		note.CreatedAt = p.CreatedAt
 		note.URL = p.URL
-		note.Usage = p.Usage
+		note.Usages = p.Usages
 		b, err := json.Marshal(note)
 		if err == nil {
 			NewTask("page-crawl-done", string(b))

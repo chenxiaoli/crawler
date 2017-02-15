@@ -2,9 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"log"
-
 	"fmt"
+	"log"
 
 	"github.com/chenxiaoli/crawler/base"
 	"github.com/chenxiaoli/crawler/config"

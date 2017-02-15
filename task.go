@@ -2,16 +2,16 @@ package main
 
 import (
 	"encoding/json"
-	"log"
-
 	"github.com/chenxiaoli/crawler/base"
+	"github.com/chenxiaoli/crawler/models"
 	"github.com/streadway/amqp"
+	"log"
 )
 
 /*
 SendPageCrawlTask 发起一个网页抓取任务
 */
-func SendPageCrawlTask(url URL) {
+func SendPageCrawlTask(url models.URL) {
 	conn, err := amqp.Dial("amqp://findata:fax123@localhost:5672/")
 	base.FailOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
