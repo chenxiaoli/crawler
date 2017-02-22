@@ -65,7 +65,16 @@ func savePage(p *models.Page) {
 		note.Usages = p.Usages
 		b, err := json.Marshal(note)
 		if err == nil {
-			NewTask("page-crawl-done", string(b))
+			if len(p.Usages) > 0 {
+				for index := 0; index < len(p.Usages); index++ {
+					name := fmt.Sprintf("page-crawl-done/%s", p.Usages[index])
+					NewTask(name, string(b))
+				}
+
+			} else {
+				NewTask("page-crawl-done", string(b))
+			}
+
 		}
 	} else {
 		err = c.Insert(p)
