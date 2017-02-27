@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
-	"net/url"
 	"time"
 
 	"github.com/chenxiaoli/crawler/base"
@@ -29,16 +28,18 @@ func crawlPage(aURL models.URL) {
 		if err != nil {
 			log.Println(err)
 		} else {
-			urlStruct, _ := url.Parse(aURL.URL)
 			page := models.Page{}
 			page.URL = aURL.URL
 			page.Data = b
 			page.ContentType = resp.Header.Get("Content-Type")
 			page.UpdatedAt = time.Now()
 			page.CreatedAt = time.Now()
+			page.Method = aURL.Method
 			page.Usages = aURL.Usages
-			page.Domain = urlStruct.Host
+			page.Domain = aURL.Domain
 			page.Code = aURL.Code
+			page.PostData = aURL.PostData
+			page.Hash = aURL.Hash
 			savePage(&page)
 		}
 	}
@@ -50,47 +51,42 @@ func savePage(p *models.Page) {
 	dbPage := models.Page{}
 	c := session.DB("findata").C("page")
 	urlc := session.DB("findata").C("url")
-	urlc.Update(bson.M{"url": &p.URL}, bson.M{"status": "out", "status_created_at": time.Now()})
-	err := c.Find(bson.M{"url": &p.URL}).One(&dbPage)
+	urlc.Update(bson.M{"hash": &p.Hash}, bson.M{"status": "out", "status_created_at": time.Now()})
+	err := c.Find(bson.M{"hash": &p.Hash}).One(&dbPage)
 	if err == nil {
 		p.CreatedAt = dbPage.CreatedAt
-		c.Update(bson.M{"url": &p.URL}, p)
+		err = c.Update(bson.M{"hash": &p.Hash}, p)
 		log.Println("update page:" + p.URL)
-
-		var note models.PageSaveNote
-		note.Code = p.Code
-		note.ContentType = p.ContentType
-		note.CreatedAt = p.CreatedAt
-		note.URL = p.URL
-		note.Usages = p.Usages
-		b, err := json.Marshal(note)
-		if err == nil {
-			if len(p.Usages) > 0 {
-				for index := 0; index < len(p.Usages); index++ {
-					name := fmt.Sprintf("page-crawl-done/%s", p.Usages[index])
-					NewTask(name, string(b))
-				}
-
-			} else {
-				NewTask("page-crawl-done", string(b))
-			}
-
+		if err != nil {
+			log.Printf("update page error:%s", err)
 		}
+
 	} else {
 		err = c.Insert(p)
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println("insert page:" + p.URL)
+	}
+	if err != nil {
+		log.Println(err)
+	} else {
 		var note models.PageSaveNote
-		note.Code = p.Code
-		note.ContentType = p.ContentType
-		note.CreatedAt = p.CreatedAt
-		note.URL = p.URL
-		note.Usages = p.Usages
+		note.CreatedAt = time.Now()
+		note.PageHash = p.Hash
 		b, err := json.Marshal(note)
-		if err == nil {
-			NewTask("page-crawl-done", string(b))
+		if err != nil {
+			log.Println(err)
+		} else {
+			log.Println(p.Usages)
+			if len(p.Usages) > 0 {
+				for index := 0; index < len(p.Usages); index++ {
+					name := fmt.Sprintf("page-crawl-done/%s/%s", p.Domain, p.Usages[index])
+					NewTask(name, string(b))
+				}
+			} else {
+				NewTask("page-crawl-done", string(b))
+			}
+
 		}
 	}
 

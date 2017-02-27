@@ -59,8 +59,12 @@ func StartPageCrawlWorker() {
 			var aURL models.URL
 			log.Printf("Received a message: %s", d.Body)
 			json.Unmarshal(d.Body, &aURL)
-			crawlPage(aURL)
-			log.Printf("Done")
+			if aURL.Domain != "" {
+				log.Printf("start work")
+				crawlPage(aURL)
+				log.Printf("Done")
+
+			}
 			d.Ack(false)
 
 		}

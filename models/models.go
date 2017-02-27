@@ -1,6 +1,15 @@
 package models
 
-import "time"
+import (
+	"findata/funddata/storage"
+	"findata/utils"
+	"fmt"
+	"time"
+
+	"log"
+
+	"gopkg.in/mgo.v2/bson"
+)
 
 /*
 URL ...
@@ -8,17 +17,44 @@ URL ...
 {"url":"http://www.jjmmw.com/"}
 */
 type URL struct {
-	ID              string            `json:"_id"`
-	URL             string            `json:"url"`
-	Usages          []string          `json:"usages"` //页面的主要用途
-	Domain          string            `json:"domain"`
-	Code            string            `json:"code"`
-	Method          string            `json:"method"`
-	PostData        map[string]string `json:"post_data"`
-	Status          string            //new,in,out
-	StatusCreatedAt time.Time         `json:"status_created_at"`
-	CreatedAt       time.Time         `json:"created_at"`
-	UpdatedAt       time.Time         `json:"updated_at"`
+	ID              string    `json:"_id"`
+	Hash            string    `json:"hash"`
+	URL             string    `json:"url"`
+	Usages          []string  `json:"usages"` //页面的主要用途
+	Domain          string    `json:"domain"`
+	Code            string    `json:"code"`
+	Method          string    `json:"method"`
+	PostData        string    `json:"post_data"`
+	Status          string    //new,in,out
+	StatusCreatedAt time.Time `json:"status_created_at"`
+	CreatedAt       time.Time `json:"created_at"`
+	UpdatedAt       time.Time `json:"updated_at"`
+}
+
+/*
+AddUsage 增加usage
+*/
+func (f *URL) AddUsage(usage string) {
+	exit := false
+	for i := 0; i < len(f.Usages); i++ {
+		if usage == f.Usages[i] {
+			exit = true
+		}
+	}
+	if exit == false {
+		f.Usages = append(f.Usages, usage)
+	}
+}
+
+func (f *URL) SetHash() {
+	if f.URL == "" {
+		panic("func (f *Url) GetID f.ID should not be null")
+	}
+	if f.Method == "" {
+		panic("func (f *Url) GetID f.Method should not be null")
+	}
+	idstr := fmt.Sprintf("%s/%s/%s", f.URL, f.Method, f.PostData)
+	f.Hash = utils.StringToHash(idstr)
 }
 
 /*
@@ -45,14 +81,14 @@ type PagePaser struct {
 Page ...
 */
 type Page struct {
-	ID       string            `json:"_id"` //_id=URL._id
-	URL      string            `json:"url"`
-	Usages   []string          `json:"usages"` //页面的主要用途
-	Code     string            `json:"code"`   //标识一个页面的实体ID，比如基金详情页，code=000001,可空
-	Domain   string            `json:"domain"`
-	Method   string            `json:"method"` //GET or POST
-	PostData map[string]string `json:"post_data"`
-
+	//ID          string   `json:"_id"`
+	Hash        string   `json:"hash"` //URL.hash=md5(url+method+PostData),unique
+	URL         string   `json:"url"`
+	Usages      []string `json:"usages"` //页面的主要用途
+	Code        string   `json:"code"`   //标识一个页面的实体ID，比如基金详情页，code=000001,可空
+	Domain      string   `json:"domain"`
+	Method      string   `json:"method"` //GET or POST
+	PostData    string   `json:"post_data"`
 	Data        []byte
 	ContentType string    `json:"content_type"`
 	CreatedAt   time.Time `json:"created_at"`
@@ -71,10 +107,21 @@ type Host struct {
 PageSaveNote 页面保存成功后，发往队列的通知
 */
 type PageSaveNote struct {
-	URL         string    `json:"url"`
-	Usages      []string  `json:"usages"`
-	Code        string    `json:"code"`
-	ContentType string    `json:"content_type"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+	PageHash  string    `json:"page_hash"`
+	CreatedAt time.Time `json:"created_at"`
+}
+
+/*
+GetPage 获取Page
+*/
+func (f *PageSaveNote) GetPage() (Page, error) {
+
+	session := storage.GetSession()
+	dbPage := Page{}
+	c := session.DB("findata").C("page")
+	err := c.Find(bson.M{"hash": &f.PageHash}).One(&dbPage)
+	if err != nil {
+		log.Printf("func (f *PageSaveNote) GetPage():%s", err)
+	}
+	return dbPage, nil
 }
