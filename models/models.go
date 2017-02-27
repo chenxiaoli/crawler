@@ -1,10 +1,12 @@
 package models
 
 import (
-	"findata/funddata/storage"
-	"findata/utils"
 	"fmt"
 	"time"
+
+	"github.com/chenxiaoli/crawler/utils"
+
+	"github.com/chenxiaoli/crawler/storage"
 
 	"log"
 

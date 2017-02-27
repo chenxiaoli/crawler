@@ -14,3 +14,25 @@ func ToMd5String(s string) string {
 	cipherStr := md5Ctx.Sum(nil)
 	return hex.EncodeToString(cipherStr)
 }
+
+/*
+StringToHash 给字符串hash
+*/
+func StringToHash(str string) string {
+	srcData := []byte(str)
+	return BytesToHash(srcData)
+}
+
+/*
+BytesToHash 给[]byte hash
+*/
+func BytesToHash(srcData []byte) string {
+	hash := md5.New()
+	hash.Write(srcData)
+	cipherText2 := hash.Sum(nil)
+	hexText := make([]byte, 32)
+	hex.Encode(hexText, cipherText2)
+
+	return string(hexText)
+
+}
